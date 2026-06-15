@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fonts */
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  /* Backgrounds */
+  --color-bg-base: #0a0a0f;
+  --color-bg-surface: #15171e;
+  --color-bg-surface-hover: #1c1f29;
+  --color-border-subtle: #2a2d38;
+
+  /* Accents */
+  --color-accent-primary: #7c5cfc;
+  --color-accent-secondary: #22d3ee;
+
+  /* Tags */
+  --color-tag-steal: #a3e635;
+  --color-tag-trending: #fb923c;
+
+  /* Text */
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #9ca3af;
+
+  /* Status */
+  --color-success: #34d399;
+
+  /* Custom shadows / glow animations */
+  --animate-pulse-slow: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer base {
+  * {
+    @apply border-border-subtle;
+  }
+
+  body {
+    @apply bg-bg-base text-text-primary font-body antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite linear;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 1000px 100%;
+}
+
+/* Hide scrollbar for horizontal chip rows but keep scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
