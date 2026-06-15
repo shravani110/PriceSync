@@ -1,17 +1,31 @@
+import { Link } from "react-router-dom";
 import Logo from "../common/Logo";
 
 const FOOTER_COLUMNS = [
   {
     title: "Company",
-    links: ["About Us", "Blog", "Careers", "Contact Support"],
+    links: [
+      { label: "About Us", to: "/about" },
+      { label: "Blog", to: "/coming-soon" },
+      { label: "Careers", to: "/coming-soon" },
+      { label: "Contact Support", to: "/contact" },
+    ],
   },
   {
     title: "Legal",
-    links: ["Privacy Policy", "Terms of Service", "Cookie Policy"],
+    links: [
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Terms of Service", to: "/terms" },
+      { label: "Cookie Policy", to: "/coming-soon" },
+    ],
   },
   {
     title: "Developers",
-    links: ["API Documentation", "System Status", "Open Source"],
+    links: [
+      { label: "API Documentation", to: "/coming-soon" },
+      { label: "System Status", to: "/coming-soon" },
+      { label: "Open Source", to: "/coming-soon" },
+    ],
   },
 ];
 
@@ -33,10 +47,14 @@ function Footer() {
               <h3 className="font-display font-semibold text-sm mb-3">{column.title}</h3>
               <ul className="flex flex-col gap-2 text-sm text-text-secondary">
                 {column.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="hover:text-text-primary transition-colors">
-                      {link}
-                    </a>
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      state={link.to === "/coming-soon" ? { title: link.label } : undefined}
+                      className="hover:text-text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
