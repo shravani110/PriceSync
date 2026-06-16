@@ -1,73 +1,39 @@
-import nodemailer from "nodemailer";
+import axios from "axios";
 
-let transporterPromise = null;
+// Brevo (formerly Sendinblue) HTTPS API — Railway blocks outbound SMTP
+// connections (ports 465/587), so nodemailer/Gmail SMTP always times out.
+// Brevo's REST API goes over port 443 which Railway allows.
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+const SENDER_EMAIL = process.env.SMTP_FROM_EMAIL || "shravanidasari110@gmail.com";
+const SENDER_NAME = "PriceSync";
 
-async function getTransporter() {
-  if (transporterPromise) return transporterPromise;
-
-  if (process.env.SMTP_HOST) {
-    transporterPromise = Promise.resolve(
-      nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: Number(process.env.SMTP_PORT) === 465,
-        auth: process.env.SMTP_USER
-          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-          : undefined,
-      })
-    );
-  } else {
-    transporterPromise = nodemailer.createTestAccount().then((testAccount) => {
-      console.log("[email] No SMTP configured — using Ethereal test inbox");
-      console.log(`[email] Ethereal login: ${testAccount.user} / ${testAccount.pass}`);
-      return nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
-        auth: { user: testAccount.user, pass: testAccount.pass },
-      });
-    });
+async function sendEmail({ to, subject, html }) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) {
+    console.warn("[email] BREVO_API_KEY not set — skipping email send");
+    return;
   }
 
-  return transporterPromise;
-}
-
-const FROM_ADDRESS = process.env.SMTP_FROM || "PriceSync <alerts@pricesync.app>";
-
-export async function sendPriceDropEmail({ to, title, targetPrice, currentPrice, url, image }) {
-  const transporter = await getTransporter();
-
-  const subject = `Price drop alert: ${title}`;
-  const html = `
-    <div style="font-family: sans-serif; max-width: 480px;">
-      <h2 style="color: #7c5cfc;">Good news! A price dropped 🎉</h2>
-      ${image ? `<img src="${image}" alt="${title}" style="max-width: 200px; border-radius: 8px;" />` : ""}
-      <h3>${title}</h3>
-      <p>You asked to be notified when the price dropped to <strong>₹${targetPrice}</strong> or below.</p>
-      <p>It's now available for <strong style="color: #22d3ee; font-size: 1.2em;">₹${currentPrice}</strong>.</p>
-      ${url ? `<p><a href="${url}" style="color: #7c5cfc;">View product →</a></p>` : ""}
-      <p style="color: #888; font-size: 0.85em;">— PriceSync</p>
-    </div>
-  `;
-
-  const info = await transporter.sendMail({
-    from: FROM_ADDRESS,
-    to,
-    subject,
-    html,
-  });
-
-  const previewUrl = nodemailer.getTestMessageUrl(info);
-  if (previewUrl) {
-    console.log(`[email] Preview URL: ${previewUrl}`);
-  }
-
-  return info;
+  await axios.post(
+    BREVO_API_URL,
+    {
+      sender: { name: SENDER_NAME, email: SENDER_EMAIL },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    },
+    {
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      timeout: 15000,
+    }
+  );
 }
 
 export async function sendVerificationEmail({ to, name, verifyUrl }) {
-  const transporter = await getTransporter();
-
   const html = `
     <div style="font-family: sans-serif; max-width: 480px;">
       <h2 style="color: #7c5cfc;">Verify your email</h2>
@@ -83,17 +49,21 @@ export async function sendVerificationEmail({ to, name, verifyUrl }) {
     </div>
   `;
 
-  const info = await transporter.sendMail({
-    from: FROM_ADDRESS,
-    to,
-    subject: "Verify your PriceSync email",
-    html,
-  });
+  await sendEmail({ to, subject: "Verify your PriceSync email", html });
+}
 
-  const previewUrl = nodemailer.getTestMessageUrl(info);
-  if (previewUrl) {
-    console.log(`[email] Preview URL: ${previewUrl}`);
-  }
+export async function sendPriceDropEmail({ to, title, targetPrice, currentPrice, url, image }) {
+  const html = `
+    <div style="font-family: sans-serif; max-width: 480px;">
+      <h2 style="color: #7c5cfc;">Good news! A price dropped</h2>
+      ${image ? `<img src="${image}" alt="${title}" style="max-width: 200px; border-radius: 8px;" />` : ""}
+      <h3>${title}</h3>
+      <p>You asked to be notified when the price dropped to <strong>&#8377;${targetPrice}</strong> or below.</p>
+      <p>It's now available for <strong style="color: #22d3ee; font-size: 1.2em;">&#8377;${currentPrice}</strong>.</p>
+      ${url ? `<p><a href="${url}" style="color: #7c5cfc;">View product &rarr;</a></p>` : ""}
+      <p style="color: #888; font-size: 0.85em;">— PriceSync</p>
+    </div>
+  `;
 
-  return info;
+  await sendEmail({ to, subject: `Price drop alert: ${title}`, html });
 }
