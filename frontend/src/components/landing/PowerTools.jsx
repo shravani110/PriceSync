@@ -48,7 +48,7 @@ function PowerTools() {
           </p>
         </div>
         <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-accent-secondary/15 text-accent-secondary whitespace-nowrap">
-          Syncing across 50+ retailers
+          Syncing across 7 top retailers
         </span>
       </div>
 
@@ -56,11 +56,11 @@ function PowerTools() {
         <div className="lg:col-span-2 rounded-2xl bg-bg-surface border border-border-subtle p-6 flex flex-col">
           <PriceChart />
           <h3 className="font-display font-semibold text-lg mt-4 mb-1">
-            Real-time Price Tracking
+            Live Price Comparison
           </h3>
           <p className="text-text-secondary text-sm leading-relaxed">
-            Our web-crawlers update prices every 60 seconds. You see the deal
-            the moment it goes live, not an hour later.
+            Every search fetches live prices directly from Amazon, Flipkart,
+            Myntra, AJIO, Croma, Reliance Digital and Vijay Sales — all at once.
           </p>
         </div>
 
@@ -101,10 +101,10 @@ function PowerTools() {
           <span className="inline-flex items-center justify-center w-11 h-11 rounded-full mb-4 bg-accent-secondary/15 text-accent-secondary">
             <Share2 className="w-5 h-5" />
           </span>
-          <h3 className="font-display font-semibold text-lg mb-1">100+ Stores Synced</h3>
+          <h3 className="font-display font-semibold text-lg mb-1">7 Top Indian Stores</h3>
           <p className="text-text-secondary text-sm leading-relaxed">
-            From global giants like Amazon and Walmart to niche boutiques, we
-            unify the entire internet into one search bar.
+            Amazon, Flipkart, Myntra, AJIO, Croma, Reliance Digital and Vijay
+            Sales — all compared side by side in a single search.
           </p>
         </div>
       </div>
