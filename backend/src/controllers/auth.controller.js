@@ -17,12 +17,10 @@ async function issueVerificationEmail(user) {
   user.verificationTokenExpires = new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS);
   await user.save();
 
+  // Send in background — don't block the registration/resend response
   const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
-  try {
-    await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
-  } catch (err) {
-    console.error("[auth] Failed to send verification email:", err.message);
-  }
+  sendVerificationEmail({ to: user.email, name: user.name, verifyUrl })
+    .catch((err) => console.error("[auth] Failed to send verification email:", err.message));
 }
 
 export async function register(req, res, next) {
