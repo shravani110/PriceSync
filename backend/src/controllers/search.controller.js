@@ -38,7 +38,7 @@ export async function searchProducts(req, res, next) {
 
     // v2: prefix bumped to invalidate caches built before the relevance-filter
     // and price-ratio-guard fixes were deployed.
-    const CACHE_VERSION = "v2:";
+    const CACHE_VERSION = "v3:";
     const cacheKey = CACHE_VERSION + query.toLowerCase();
 
     if (dbReady) {
