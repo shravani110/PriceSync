@@ -33,15 +33,15 @@ function Footer() {
   return (
     <footer className="border-t border-border-subtle mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          <div>
-            <Logo />
-            <p className="mt-3 text-sm text-text-secondary max-w-xs">
-              Precision tracking for smart shoppers. Never pay full price
-              again.
-            </p>
-          </div>
+        <div className="mb-8">
+          <Logo />
+          <p className="mt-3 text-sm text-text-secondary max-w-xs">
+            Precision tracking for smart shoppers. Never pay full price
+            again.
+          </p>
+        </div>
 
+        <div className="grid grid-cols-3 lg:grid-cols-3 gap-6 sm:gap-10">
           {FOOTER_COLUMNS.map((column) => (
             <div key={column.title}>
               <h3 className="font-display font-semibold text-sm mb-3">{column.title}</h3>
