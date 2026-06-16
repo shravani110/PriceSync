@@ -5,5 +5,6 @@ export const searchRateLimiter = rateLimit({
   limit: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
   message: { error: "Too many searches — please wait a moment and try again." },
 });
