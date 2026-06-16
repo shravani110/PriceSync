@@ -41,7 +41,7 @@ export async function scrapeVijaySales(query) {
       const price = item.price_range?.maximum_price?.final_price?.value;
       const originalPrice = item.price_range?.maximum_price?.regular_price?.value ?? price;
 
-      if (!item.name || !price || !item.product_url) return null;
+      if (!item.name || !price || price < 100 || !item.product_url) return null;
 
       // Vijay Sales falls back to a generic placeholder image when a
       // product has none of its own — drop it so the matcher doesn't

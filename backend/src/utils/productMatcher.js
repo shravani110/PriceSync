@@ -231,7 +231,7 @@ export function matchProducts(items) {
         const groupItem = group.items[gi];
         if (item.price && groupItem.price) {
           const ratio = Math.max(item.price, groupItem.price) / Math.min(item.price, groupItem.price);
-          if (ratio > 10) return;
+          if (ratio > 3) return;
         }
 
         const sameStore = groupItem.store === item.store;
