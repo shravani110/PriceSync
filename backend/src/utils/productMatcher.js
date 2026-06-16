@@ -170,14 +170,28 @@ function relevanceTokens(text) { return tokenize(text, STOPWORDS); }
 function queryRelevanceTokens(text) { return tokenize(text, QUERY_STOPWORDS); }
 
 // Stores often return "related"/"you may also like" items alongside (or
-// instead of) actual search matches. Drop results that share less than
-// half of the query's tokens, so the results page doesn't show products
-// unrelated to what the user searched for.
+// instead of) actual search matches. Drop results whose title doesn't
+// contain at least half the query's meaningful words.
 export function filterByQueryRelevance(items, query) {
-  const queryTokens = queryRelevanceTokens(query);
-  if (queryTokens.size === 0) return items;
+  const titleLower = (title) => (title || "").toLowerCase();
 
-  return items.filter((item) => {
+  // Pass 1 — simple substring check: at least one core query word must
+  // appear literally in the title. Catches cases like "ACV Moringa Weight
+  // Loss" appearing in an iPhone search — "iphone" simply isn't in there.
+  const coreWords = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !QUERY_STOPWORDS.has(w) && !RELEVANCE_FILLER_WORDS.has(w));
+
+  const afterSubstring = coreWords.length > 0
+    ? items.filter((item) => coreWords.some((w) => titleLower(item.title).includes(w)))
+    : items;
+
+  // Pass 2 — token-level match with prefix support for plurals/variants.
+  const queryTokens = queryRelevanceTokens(query);
+  if (queryTokens.size === 0) return afterSubstring;
+
+  return afterSubstring.filter((item) => {
     const titleTokens = relevanceTokens(item.title);
     let matched = 0;
     for (const qt of queryTokens) {

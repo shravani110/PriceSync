@@ -184,6 +184,7 @@ function FocusCard({ product, onUnsave, activeAlert, onAlertChange }) {
             alt={product.title}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         </div>
 
