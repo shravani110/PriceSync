@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { MailWarning } from "lucide-react";
+import { MailWarning, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { resendVerification } from "../../services/api";
 
 function VerifyBanner() {
   const { user } = useAuth();
   const [status, setStatus] = useState("idle");
+  const [dismissed, setDismissed] = useState(false);
 
-  if (!user || user.emailVerified) return null;
+  if (!user || user.emailVerified || dismissed) return null;
 
   const handleResend = async () => {
     setStatus("sending");
@@ -20,7 +21,7 @@ function VerifyBanner() {
   };
 
   return (
-    <div className="border-b border-accent-primary/20 bg-accent-primary/10 px-4 py-2 text-center text-sm text-text-secondary">
+    <div className="relative border-b border-accent-primary/20 bg-accent-primary/10 px-4 py-2 text-center text-sm text-text-secondary">
       <MailWarning className="w-4 h-4 inline-block mr-1.5 -mt-0.5 text-accent-secondary" />
       Please verify your email ({user.email}) to enable price-drop alerts.{" "}
       {status === "sent" ? (
@@ -37,6 +38,14 @@ function VerifyBanner() {
           {status === "sending" ? "Sending..." : "Resend email"}
         </button>
       )}
+      <button
+        type="button"
+        onClick={() => setDismissed(true)}
+        aria-label="Dismiss"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary cursor-pointer"
+      >
+        <X className="w-4 h-4" />
+      </button>
     </div>
   );
 }
