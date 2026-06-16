@@ -21,7 +21,8 @@ export async function scrapeRelianceDigital(query) {
       const originalPrice = item.price?.marked?.min ?? price;
       const image = item.medias?.[0]?.url;
 
-      if (!item.name || !price || !item.slug || !item.item_code) return null;
+      // Prices below ₹10 almost certainly indicate a parsing/API error
+      if (!item.name || !price || price < 10 || !item.slug || !item.item_code) return null;
 
       return {
         store: STORE,

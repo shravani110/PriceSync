@@ -4,11 +4,13 @@ import { scrapeMyntra } from "./myntra.scraper.js";
 import { scrapeCroma } from "./croma.scraper.js";
 import { scrapeRelianceDigital } from "./reliancedigital.scraper.js";
 import { scrapeVijaySales } from "./vijaysales.scraper.js";
+import { scrapeAjio } from "./ajio.scraper.js";
 
 const SCRAPERS = [
   { name: "Amazon", run: scrapeAmazon },
   { name: "Flipkart", run: scrapeFlipkart },
   { name: "Myntra", run: scrapeMyntra },
+  { name: "AJIO", run: scrapeAjio },
   { name: "Croma", run: scrapeCroma },
   { name: "Reliance Digital", run: scrapeRelianceDigital },
   { name: "Vijay Sales", run: scrapeVijaySales },

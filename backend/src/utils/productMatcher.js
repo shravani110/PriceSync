@@ -1,8 +1,16 @@
 import crypto from "crypto";
 
+// Used when tokenizing PRODUCT TITLES — gender/age terms appear in nearly
+// every result for a category search and carry no discriminating power there.
 const STOPWORDS = new Set([
   "the", "for", "and", "with", "men", "mens", "men's", "women", "womens",
   "women's", "kids", "pack", "of", "a", "an", "in", "new", "edition",
+]);
+
+// Used when tokenizing the USER'S QUERY — gender/age terms ARE meaningful
+// here ("womens" in "kurtis for womens" is a real search signal).
+const QUERY_STOPWORDS = new Set([
+  "the", "for", "and", "with", "pack", "of", "a", "an", "in", "new", "edition",
 ]);
 
 const SIMILARITY_THRESHOLD = 0.6;
@@ -142,35 +150,44 @@ function stripPriceQualifiers(text) {
     .replace(/\b\d{1,3}(?:,\d{2,3})+\b/g, " ");
 }
 
-// Tokenizes for query-relevance checks: splits on non-alphanumeric AND on
-// letter/digit boundaries, so "17pro" (query) and "17 pro" (title) tokenize
-// the same way. Unlike `normalize`, short numeric/model tokens (e.g. "17")
-// are kept since they're often the most distinguishing part of a query.
-function relevanceTokens(text) {
+function tokenize(text, stopwords) {
   return new Set(
     stripPriceQualifiers(text)
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, " ")
       .split(/\s+/)
-      .filter((word) => word.length > 0 && !STOPWORDS.has(word))
+      .filter((word) => word.length > 0 && !stopwords.has(word))
       .flatMap((word) => word.match(/[a-z]+|\d+/g) || [word])
       .filter((token) => token.length > 1 && !RELEVANCE_FILLER_WORDS.has(token))
   );
 }
+
+// Title tokens use the full STOPWORDS (gender terms stripped — noisy in titles).
+function relevanceTokens(text) { return tokenize(text, STOPWORDS); }
+
+// Query tokens use the smaller QUERY_STOPWORDS so "womens", "mens", "kids"
+// are preserved as meaningful search signals.
+function queryRelevanceTokens(text) { return tokenize(text, QUERY_STOPWORDS); }
 
 // Stores often return "related"/"you may also like" items alongside (or
 // instead of) actual search matches. Drop results that share less than
 // half of the query's tokens, so the results page doesn't show products
 // unrelated to what the user searched for.
 export function filterByQueryRelevance(items, query) {
-  const queryTokens = relevanceTokens(query);
+  const queryTokens = queryRelevanceTokens(query);
   if (queryTokens.size === 0) return items;
 
   return items.filter((item) => {
     const titleTokens = relevanceTokens(item.title);
     let matched = 0;
-    for (const token of queryTokens) {
-      if (titleTokens.has(token)) matched++;
+    for (const qt of queryTokens) {
+      for (const tt of titleTokens) {
+        if (qt === tt) { matched++; break; }
+        // Prefix match handles plurals and variants:
+        // "kurtis"↔"kurti", "shoes"↔"shoe", "womens"↔"women"
+        const min = Math.min(qt.length, tt.length);
+        if (min >= 4 && qt.slice(0, min) === tt.slice(0, min)) { matched++; break; }
+      }
     }
     return matched / queryTokens.size >= 0.5;
   });
@@ -195,7 +212,15 @@ export function matchProducts(items) {
 
     for (const group of groups) {
       group.tokenSets.forEach((groupTokens, gi) => {
-        const sameStore = group.items[gi].store === item.store;
+        // A ₹4,000 phone case and a ₹79,900 iPhone share title tokens but
+        // are not the same product — skip matching when prices differ >10×.
+        const groupItem = group.items[gi];
+        if (item.price && groupItem.price) {
+          const ratio = Math.max(item.price, groupItem.price) / Math.min(item.price, groupItem.price);
+          if (ratio > 10) return;
+        }
+
+        const sameStore = groupItem.store === item.store;
         const score = weightedSimilarity(tokens, groupTokens, df, total, sameStore);
         if (score > bestScore) {
           bestScore = score;
