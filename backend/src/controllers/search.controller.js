@@ -36,11 +36,17 @@ export async function searchProducts(req, res, next) {
 
     const dbReady = mongoose.connection.readyState === 1;
 
+    // v2: prefix bumped to invalidate caches built before the relevance-filter
+    // and price-ratio-guard fixes were deployed.
+    const CACHE_VERSION = "v2:";
+    const cacheKey = CACHE_VERSION + query.toLowerCase();
+
     if (dbReady) {
-      const cached = await SearchCache.findOne({ query: query.toLowerCase() });
+      const cached = await SearchCache.findOne({ query: cacheKey });
       if (cached) {
-        await recordPriceHistory(cached.results);
-        return res.json({ query, results: cached.results, source: "cache" });
+        const results = filterByQueryRelevance(cached.results, query);
+        await recordPriceHistory(results);
+        return res.json({ query, results, source: "cache" });
       }
     }
 
@@ -65,8 +71,8 @@ export async function searchProducts(req, res, next) {
 
     if (dbReady && results.length > 0) {
       await SearchCache.findOneAndUpdate(
-        { query: query.toLowerCase() },
-        { query: query.toLowerCase(), results, createdAt: new Date() },
+        { query: cacheKey },
+        { query: cacheKey, results, createdAt: new Date() },
         { upsert: true }
       );
       await recordPriceHistory(results);
