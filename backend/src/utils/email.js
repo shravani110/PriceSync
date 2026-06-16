@@ -14,23 +14,31 @@ async function sendEmail({ to, subject, html }) {
     return;
   }
 
-  await axios.post(
-    BREVO_API_URL,
-    {
-      sender: { name: SENDER_NAME, email: SENDER_EMAIL },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
-    },
-    {
-      headers: {
-        "api-key": apiKey,
-        "Content-Type": "application/json",
-        Accept: "application/json",
+  console.log(`[email] Sending "${subject}" to ${to} via Brevo`);
+  try {
+    const res = await axios.post(
+      BREVO_API_URL,
+      {
+        sender: { name: SENDER_NAME, email: SENDER_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
       },
-      timeout: 15000,
-    }
-  );
+      {
+        headers: {
+          "api-key": apiKey,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        timeout: 15000,
+      }
+    );
+    console.log(`[email] Sent OK — messageId: ${res.data?.messageId}`);
+  } catch (err) {
+    const detail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    console.error(`[email] Brevo API error: ${detail}`);
+    throw err;
+  }
 }
 
 export async function sendVerificationEmail({ to, name, verifyUrl }) {
